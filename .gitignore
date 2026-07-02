@@ -1,0 +1,14 @@
+# Arquivos compilados do Java
+*.class
+
+# Pastas de IDEs (VS Code, Eclipse, IntelliJ)
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+
+# Ignorar planilhas (Proteção de dados da empresa)
+*.xlsx
+*.xls
+*.csv
