@@ -22,6 +22,11 @@ public class ColetaDados {
         //Rateio rateio = new Rateio();
         
         Departamento[] departamento = new Departamento[13];
+        Departamento total = new Departamento();
+        total.setName("total");
+        int franquiaPbCount = 90000;
+        double franquiaPbCost = 6768.00;
+
         for (int i = 0; i < departamento.length; i++) {
             departamento[i] = new Departamento();
             if(i == departamento.length-1)
@@ -34,10 +39,7 @@ public class ColetaDados {
             Sheet sheet = workbook.getSheetAt(0);
             DataFormatter formatter = new DataFormatter();
 
-            int total = 0;
-            int totalPb = 0;
-            int totalCl = 0;
-            int totalTermica = 0;
+
             System.out.println("Processando contagem por departamento...\n");    
             
             for(int i = 93; i <= 138; i++){
@@ -82,57 +84,46 @@ public class ColetaDados {
                     departamento[deptoAtual].setName(auxDepartamento);
                     if (tipoCopia.equals("p&b") || tipoCopia.equals("pb")) {
                         departamento[deptoAtual].addContagemPb(contagem);
-                        totalPb += contagem;
+                        //total.addFaturamentoPb(contagem);
                     } 
                     else if (tipoCopia.equals("color") || tipoCopia.equals("colorido")) {
                         departamento[deptoAtual].addContagemCl(contagem);
-                        totalCl += contagem;
+                        //total.addFaturamentoCl(contagem);
                     }   
                     else if (tipoCopia.equals("termica")) {
                         departamento[deptoAtual].addContagemTermica(contagem);
-                        totalTermica += contagem;
+                        //total.addFaturamentoTermica(contagem);
                     }
                 }
-
-                total += contagem;
             }
+
+            calcularCustos(departamento, total);
             
-            System.out.println("========== RELAT0RIO DE IMPRESSÕES ==========");
-            System.out.println("TOTAL GERAL DA PLANILHA: " + total + "\n");
-            System.out.println("TOTAL P&B: " + totalPb + "\n");
-            System.out.println("TOTAL COLORIDA: " + totalCl + "\n");
-            System.out.println("TOTAL TERMICA: " + totalTermica + "\n");
+            
+
+            
+            
+            System.out.println(total.toStringContagem());
+            //System.out.println(total.toStringFaturamento());
+            
+            System.out.printf("Color: %.2f\n",total.getFaturamentoClTotal());
+            System.out.printf("PB: %.2f\n",total.getFaturamentoPbTotal());
+            System.out.printf("Termica: %.2f\n",total.getFaturamentoTermicaTotal());
+            System.out.printf("Total: %.2f\n",total.getFaturamentoTotal());
+            System.out.println();
+
+            if(total.getContagemPb() < franquiaPbCount)
+                calcularResidual(departamento,total, franquiaPbCost);
 
             for(int i = 0;i<departamento.length-1;i++)
-                System.out.println(departamento[i].toStringContagem());
+                 System.out.println(departamento[i].toStringContagem());
             
-            for(int i = 0; i < departamento.length - 1; i++){
-                departamento[i].addFaturamentoPb(departamento[i].getContagemPb());
-                departamento[i].addFaturamentoCl(departamento[i].getContagemCl());
-                departamento[i].addFaturamentoTermica(departamento[i].getContagemTermica());
-            }
-
-
-            System.out.println("========== RATEIO DE CUSTO ==========");
-            
-            double totalCostPb = 0;
-            double totalCostCl = 0;
-            double totalCostTermica  = 0;
-
             for(int i = 0;i<departamento.length-1;i++){
+                departamento[i].setFaturamentoTotalDpto();
                 System.out.println(departamento[i].toStringFaturamento());
-                totalCostPb += departamento[i].getFaturamentoPb();
-                totalCostCl += departamento[i].getFaturamentoCl();
-                totalCostTermica += departamento[i].getFaturamentoTermica();
             }
-            
-            double totalGeral = totalCostPb + totalCostCl + totalCostTermica;
-            
-            System.out.println("---------------------------------------------\n");
-            System.out.printf("CUSTO TOTAL P&B: R$ %.2f\n", totalCostPb);
-            System.out.printf("CUSTO TOTAL COLOR: R$ %.2f\n", totalCostCl);
-            System.out.printf("CUSTO TOTAL TÉRMICA: R$ %.2f\n", totalCostTermica);
-            System.out.printf("CUSTO GERAL TOTAL: R$ %.2f\n", totalGeral);
+
+            dividirGastosKensinTilisp(departamento);
             
 
         } catch (IOException e) {
@@ -140,6 +131,48 @@ public class ColetaDados {
         }
 
     }
+
+    static void calcularCustos(Departamento[] departamento, Departamento total){
+        for(int i = 0; i < departamento.length - 1; i++){
+                departamento[i].addFaturamentoCl(departamento[i].getContagemCl());
+                departamento[i].addFaturamentoTermica(departamento[i].getContagemTermica()) ;
+                departamento[i].addFaturamentoPb(departamento[i].getContagemPb());
+                
+                total.addContagemCl(departamento[i].getContagemCl());
+                total.addContagemTermica(departamento[i].getContagemTermica());
+                total.addContagemPb(departamento[i].getContagemPb());
+
+                total.addFaturamentoPbTotal(departamento[i].getFaturamentoPb());
+                total.addFaturamentoClTotal(departamento[i].getFaturamentoCl());
+                total.addFaturamentoTermicaTotal(departamento[i].getFaturamentoTermica());
+                total.setFaturamentoTotal();
+        }
+        
+
+    }
+    
+    static void calcularResidual(Departamento[] departamento, Departamento total, double franquiaCost){
+         double totalCostPb = total.getFaturamentoPbTotal() + total.getFaturamentoTermicaTotal();
+         
+        for(int i = 0;i<departamento.length-1;i++){
+                //System.out.println(departamento[i].toStringFaturamento());
+                departamento[i].setProporcaoResidual(totalCostPb);
+                departamento[i].setValorResidual(franquiaCost - total.getFaturamentoPbTotal());
+                departamento[i].setFaturamentoTotalComResidual();
+                System.out.println(departamento[i].getName());
+                System.out.printf("Proporcao residual: %.2f%%\n",departamento[i].getProporcaoResidual()*100);
+                System.out.printf("Valor residual: R$%.2f\n",departamento[i].getValorResidual());
+                System.out.printf("Total com residual: R$%.2f\n",departamento[i].getFaturamentoComResidual());
+            }
+    
+    }
+
+    static void dividirGastosKensinTilisp(Departamento[] departamento){
+        System.out.printf("Kesington: %.2f\n", departamento[11].getFaturamentoTotalDpto()*0.7);
+        System.out.printf("Tilisp: %.2f\n", departamento[11].getFaturamentoTotalDpto()*0.3);
+    }
+
+
 
     // FUNÇÃO PARA REMOVER ACENTOS
     public static String removerAcentos(String texto) {
