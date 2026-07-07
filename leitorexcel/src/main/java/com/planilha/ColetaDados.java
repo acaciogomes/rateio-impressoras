@@ -15,22 +15,17 @@ import java.util.Scanner;
 public class ColetaDados {
 
     public static void main(String[] args) {
-        // Scanner sc = new Scanner(System.in);
-        // String planilha = sc.nextLine();
+        Scanner sc = new Scanner(System.in);
         String caminhoArquivo = "C:\\Users\\aigomes\\OneDrive - ACCO Brands Corporation\\Documents\\cod\\java\\Rateio\\202605.xlsx";
-
-        //Rateio rateio = new Rateio();
-        
-        Departamento[] departamento = new Departamento[13];
+        Departamento[] departamento = new Departamento[12];
         Departamento total = new Departamento();
         total.setName("total");
         int franquiaPbCount = 90000;
         double franquiaPbCost = 6768.00;
+        char opcao;
 
         for (int i = 0; i < departamento.length; i++) {
             departamento[i] = new Departamento();
-            if(i == departamento.length-1)
-                departamento[i].setName("kensington");
         }
 
         try (FileInputStream file = new FileInputStream(new File(caminhoArquivo));
@@ -84,48 +79,100 @@ public class ColetaDados {
                     departamento[deptoAtual].setName(auxDepartamento);
                     if (tipoCopia.equals("p&b") || tipoCopia.equals("pb")) {
                         departamento[deptoAtual].addContagemPb(contagem);
-                        //total.addFaturamentoPb(contagem);
                     } 
                     else if (tipoCopia.equals("color") || tipoCopia.equals("colorido")) {
                         departamento[deptoAtual].addContagemCl(contagem);
-                        //total.addFaturamentoCl(contagem);
                     }   
                     else if (tipoCopia.equals("termica")) {
                         departamento[deptoAtual].addContagemTermica(contagem);
-                        //total.addFaturamentoTermica(contagem);
                     }
                 }
             }
 
             calcularCustos(departamento, total);
             
-            
-
-            
-            
-            System.out.println(total.toStringContagem());
-            //System.out.println(total.toStringFaturamento());
-            
-            System.out.printf("Color: %.2f\n",total.getFaturamentoClTotal());
-            System.out.printf("PB: %.2f\n",total.getFaturamentoPbTotal());
-            System.out.printf("Termica: %.2f\n",total.getFaturamentoTermicaTotal());
-            System.out.printf("Total: %.2f\n",total.getFaturamentoTotal());
-            System.out.println();
-
             if(total.getContagemPb() < franquiaPbCount)
-                calcularResidual(departamento,total, franquiaPbCost);
-
-            for(int i = 0;i<departamento.length-1;i++)
-                 System.out.println(departamento[i].toStringContagem());
+                calcularResidual(departamento, total, franquiaPbCost);
             
-            for(int i = 0;i<departamento.length-1;i++){
-                departamento[i].setFaturamentoTotalDpto();
-                System.out.println(departamento[i].toStringFaturamento());
-            }
+            do {
+                limparTela();
+                System.out.println("\n===================== MENU =======================");
+                System.out.println("[1] Ver Contagem de Cópias por Departamento");
+                System.out.println("[2] Ver Faturamento Detalhado por Departamento");
+                System.out.println("[3] Ver Cálculo Residual por Departamento");
+                System.out.println("[4] Ver Resumo Total a Pagar por Departamento");
+                System.out.println("[5] Ver Total Geral da Empresa");
+                System.out.println("[Q] Sair");
+                System.out.println("====================================================");
+                    System.out.print("Escolha uma opção: ");
+    
+                // Lê a primeira letra digitada e já converte para maiúsculo
+                opcao = sc.next().charAt(0);
+                sc.nextLine();
 
-            dividirGastosKensinTilisp(departamento);
+                switch (opcao) {
+                case '1':
+                    System.out.println("\n--- CONTAGEM DE CÓPIAS ---");
+                    for (int i = 0; i < departamento.length; i++) {
+                        if (departamento[i] != null) {
+                            System.out.print(departamento[i].toStringContagem());
+                        }
+                    }
+                break;
             
+                case '2':
+                    System.out.println("\n--- FATURAMENTO DETALHADO ---");
+                    for (int i = 0; i < departamento.length; i++) {
+                        if (departamento[i] != null) {
+                            System.out.print(departamento[i].toStringFaturamento());
+                        }
+                    }
+                    break;
+            
+                case '3':
+                    System.out.println("\n--- RATEIO RESIDUAL ---");
+                    for (int i = 0; i < departamento.length; i++) {
+                        if (departamento[i] != null) {
+                            System.out.print(departamento[i].toStringResidual());
+                        }
+                    }
+                    break;
+            
+                case '4':
+                    System.out.println("\n--- RESUMO A PAGAR ---");
+                    for (int i = 0; i < departamento.length; i++) {
+                    if (departamento[i] != null) {
+                        System.out.print(departamento[i].toStringTotalPorDpto());
+                        }
+                    }
+                    dividirGastosKensinTilisp(departamento);
+                break;
+            
+                case '5':
+                    System.out.println("\n--- TOTAL GERAL ---");
+                    if (total != null) {
+                    // Imprime o objeto 'total' usando o método específico dele
+                        System.out.print(total.toStringFaturamentoTotal());
+                    }
+                    break;
+            
+                case 'q':
+                case 'Q':
+                    System.out.println("\nEncerrando o sistema... Até logo!");
+                    break;
+            
+                default:
+                    System.out.println("\nOpção inválida! Tente novamente.");
+                    break;
+                }
 
+                if (opcao != 'Q' && opcao != 'q') {
+                    System.out.println("\n[ Pressione ENTER para voltar ao menu ]");
+                    sc.nextLine(); // Fica travado aqui esperando o usuário bater no Enter
+                }
+
+            } while (opcao != 'Q' && opcao != 'q');
+            
         } catch (IOException e) {
             System.err.println("Erro ao ler o arquivo Excel: " + e.getMessage());
         }
@@ -133,7 +180,7 @@ public class ColetaDados {
     }
 
     static void calcularCustos(Departamento[] departamento, Departamento total){
-        for(int i = 0; i < departamento.length - 1; i++){
+        for(int i = 0; i < departamento.length; i++){
                 departamento[i].addFaturamentoCl(departamento[i].getContagemCl());
                 departamento[i].addFaturamentoTermica(departamento[i].getContagemTermica()) ;
                 departamento[i].addFaturamentoPb(departamento[i].getContagemPb());
@@ -147,32 +194,26 @@ public class ColetaDados {
                 total.addFaturamentoTermicaTotal(departamento[i].getFaturamentoTermica());
                 total.setFaturamentoTotal();
         }
-        
-
     }
     
     static void calcularResidual(Departamento[] departamento, Departamento total, double franquiaCost){
          double totalCostPb = total.getFaturamentoPbTotal() + total.getFaturamentoTermicaTotal();
          
-        for(int i = 0;i<departamento.length-1;i++){
+        for(int i = 0;i<departamento.length;i++){
                 //System.out.println(departamento[i].toStringFaturamento());
                 departamento[i].setProporcaoResidual(totalCostPb);
                 departamento[i].setValorResidual(franquiaCost - total.getFaturamentoPbTotal());
                 departamento[i].setFaturamentoTotalComResidual();
-                System.out.println(departamento[i].getName());
-                System.out.printf("Proporcao residual: %.2f%%\n",departamento[i].getProporcaoResidual()*100);
-                System.out.printf("Valor residual: R$%.2f\n",departamento[i].getValorResidual());
-                System.out.printf("Total com residual: R$%.2f\n",departamento[i].getFaturamentoComResidual());
+
+                departamento[i].setFaturamentoTotalDpto();
             }
-    
     }
 
     static void dividirGastosKensinTilisp(Departamento[] departamento){
+        System.out.println("Divisao de custos entre Kensington e Tilisp");
         System.out.printf("Kesington: %.2f\n", departamento[11].getFaturamentoTotalDpto()*0.7);
         System.out.printf("Tilisp: %.2f\n", departamento[11].getFaturamentoTotalDpto()*0.3);
     }
-
-
 
     // FUNÇÃO PARA REMOVER ACENTOS
     public static String removerAcentos(String texto) {
@@ -182,4 +223,18 @@ public class ColetaDados {
         String textoNormalizado = Normalizer.normalize(texto, Normalizer.Form.NFD);
         return textoNormalizado.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
     }
+
+    public static void limparTela() {
+    try {
+        if (System.getProperty("os.name").contains("Windows")) {
+            // Se for Windows, manda um comando "cls"
+            new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+        } else {
+            // Se for Linux ou Mac, manda um comando "clear"
+            new ProcessBuilder("clear").inheritIO().start().waitFor();
+        }
+    } catch (Exception e) {
+        System.out.println("Erro ao limpar a tela.");
+    }
+}
 }
