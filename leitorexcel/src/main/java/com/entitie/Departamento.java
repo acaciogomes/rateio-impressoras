@@ -53,7 +53,7 @@ public class Departamento {
     }
 
     public int getContagemTotal(){
-        return contagemTermica;
+        return this.contagemPb + this.contagemCl + this.contagemTermica;
     }
 
     public double getFaturamentoPb(){
@@ -77,7 +77,7 @@ public class Departamento {
     }
     
     public void addFaturamentoTermica(int contagem){
-        if("rh".equals(name) || "total".equals(name)){
+        if("rh".equals(name)){
             double franquia = 130.00;
             if (contagem > 30) {
                 this.faturamentoTermica += franquia + (contagem-30) * 0.0752;
@@ -91,9 +91,13 @@ public class Departamento {
     }
     
     public void setProporcaoResidual(double valorTotalPb){
-        if(faturamentoTermica > 0)
-        this.proporcaoResidual = (faturamentoPb + faturamentoTermica)/valorTotalPb;
-        else this.proporcaoResidual = faturamentoPb/valorTotalPb;
+        if (valorTotalPb > 0.0) {
+            if(faturamentoTermica > 0)
+                this.proporcaoResidual = (faturamentoPb + faturamentoTermica)/valorTotalPb;
+            else this.proporcaoResidual = faturamentoPb/valorTotalPb;
+        } else {
+            this.proporcaoResidual = 0.0;
+        }
     }
 
     public double getValorResidual(){
