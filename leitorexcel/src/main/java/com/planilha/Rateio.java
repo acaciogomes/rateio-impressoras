@@ -12,7 +12,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.text.Normalizer;
-import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Rateio {
@@ -21,12 +20,13 @@ public class Rateio {
         Scanner sc = new Scanner(System.in);
         
         limparTela();
-        int anoAtual = LocalDate.now().getYear();
+        System.out.println("O VS Code compilou este programa usando o Java: " + System.getProperty("java.version"));
+        int anoSelecionado = selecionarAno(sc);
         int mesSelecionado = selecionarMes(sc);
 
         String userHome = System.getProperty("user.home");
         
-        String caminhoArquivo = String.format("%s\\OneDrive - ACCO Brands Corporation\\Documents\\cod\\java\\Rateio\\%d%02d.xlsx",userHome, anoAtual, mesSelecionado);
+        String caminhoArquivo = String.format("%s\\OneDrive - ACCO Brands Corporation\\TI Infra (Tilibra - Foroni) - Infodocs\\Business Services\\Compliance\\Vendor Invoices\\Notas\\2026\\Rateio\\Centermaq v2\\Faturas\\%d%02d.xlsx",userHome, anoSelecionado, mesSelecionado);
         
         Departamento[] departamento = new Departamento[12];
         Departamento total = new Departamento();
@@ -172,7 +172,7 @@ public class Rateio {
     static int selecionarMes(Scanner sc) {
         int mes = -1;
         while (mes < 1 || mes > 12) {
-            System.out.println("========== SELEÇÃO DE MÊS ==========");
+            System.out.println("========== Selecione o mês de referencia da fatura ==========");
             System.out.println("[1] Janeiro   [2] Fevereiro  [3] Março");
             System.out.println("[4] Abril     [5] Maio       [6] Junho");
             System.out.println("[7] Julho     [8] Agosto     [9] Setembro");
@@ -193,7 +193,11 @@ public class Rateio {
         return mes;
     }
 
-    
+    static int selecionarAno(Scanner sc) {
+        System.out.print("Insira o ano de referencia da fatura (Ex: 2026): ");
+        return sc.nextInt();
+    }
+
 
     static void calcularCustos(Departamento[] departamento, Departamento total){
         for(int i = 0; i < departamento.length; i++){
@@ -244,7 +248,7 @@ public class Rateio {
 
         String userHome = System.getProperty("user.home");
 
-        String caminhoArquivo = userHome +  "\\OneDrive - ACCO Brands Corporation\\Documents\\cod\\java\\Rateio\\ConsumoGeralcopia.xlsx";
+        String caminhoArquivo = userHome +  "\\OneDrive - ACCO Brands Corporation\\TI Infra (Tilibra - Foroni) - Infodocs\\Business Services\\Compliance\\Vendor Invoices\\Notas\\2026\\Rateio\\Centermaq v2\\Faturas\\ConsumoGeral.xlsx";
         
         try {
             Workbook workbook;
@@ -336,7 +340,6 @@ public class Rateio {
                 Cell celula = linha.getCell(mes);
                 if (celula != null) {
                     String valor = formatter.formatCellValue(celula).trim();
-                    // Se a célula tiver qualquer valor diferente de vazio ou zero, consideramos preenchida
                     if (!valor.isEmpty() && !valor.equals("0") && !valor.equals("0,00") && !valor.equals("-")) {
                         return true; // Encontrou dados!
                     }
